@@ -321,12 +321,15 @@ def question_start(question):
     # 解析镜像端口
     image_config = image.attrs["ContainerConfig"]
     random_port = ""
+    web_port = ""
     if "ExposedPorts" in image_config:
         port_dict = image.attrs["ContainerConfig"]["ExposedPorts"]
         for docker_port, host_port in port_dict.items():
             # docker_port_int = docker_port.replace("/", "").replace("tcp", "").replace("udp", "")
             random_port = str(random.randint(20000, 65536))
             port_dict[docker_port] = random_port
+            if "80/tcp" in docker_port:
+                web_port = random_port
     else:
         port_dict = {}
     image_name = image.attrs["RepoTags"][0].replace(":", ".")
@@ -356,7 +359,7 @@ def question_start(question):
     container.image_id = image.attrs["Id"]
     container.container_name = container_name
     container.container_status = docker_container_response.attrs["State"]["Status"]
-    container.container_port = random_port
+    container.container_port = web_port
     container.user_id = user.id
     # 销毁时间
     container.destroy_time = datetime.now() + timedelta(minutes=10)
